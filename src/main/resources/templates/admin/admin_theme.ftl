@@ -2,6 +2,7 @@
 <#include "module/_macro.ftl">
 <@head>${options.blog_title!} | <@spring.message code='admin.themes.title' /></@head>
 <div class="content-wrapper">
+    <link rel="stylesheet" href="/static/halo-backend/plugins/fileinput/fileinput.min.css">
     <style type="text/css" rel="stylesheet">
         .theme-thumbnail{
             width:100%;
@@ -26,21 +27,18 @@
             font-size: 18px;
             line-height: 30px;
         }
-        #uploadForm{
-            display: none;
-        }
         .btn-delete:hover{
             color: red;
         }
     </style>
     <section class="content-header" id="animated-header">
         <h1 style="display: inline-block;"><@spring.message code='admin.themes.title' /></h1>
-        <a class="btn-header" id="showForm" href="#" onclick="halo.layerModal('/admin/themes/install','<@spring.message code="admin.themes.js.install-theme" />')">
+        <a class="btn-header" id="showForm" href="javascript:void(0)" onclick="halo.layerModal('/admin/themes/install','<@spring.message code="admin.themes.js.install-theme" />')">
             <i class="fa fa-cloud-upload" aria-hidden="true"></i><@spring.message code='admin.themes.btn.install' />
         </a>
         <ol class="breadcrumb">
             <li><a data-pjax="true" href="/admin"><i class="fa fa-dashboard"></i> <@spring.message code='admin.index.bread.index' /></a></li>
-            <li><a data-pjax="true" href="#"><@spring.message code='admin.themes.bread.appearance' /></a></li>
+            <li><a data-pjax="true" href="javascript:void(0)"><@spring.message code='admin.themes.bread.appearance' /></a></li>
             <li class="active"><@spring.message code='admin.themes.title' /></li>
         </ol>
     </section>
@@ -93,51 +91,53 @@
             </div>
         </div>
     </div>
-    <script type="application/javascript">
-
-        /**
-         * 设置主题
-         * @param site_theme 主题名
-         */
-        function setTheme(site_theme) {
-            $.ajax({
-                type: 'get',
-                url: '/admin/themes/set',
-                data: {
-                    'siteTheme': site_theme
-                },
-                success: function (data) {
-                    if(data.code==1){
-                        halo.showMsgAndReload(data.msg,'success',1000);
-                    }else{
-                        halo.showMsg(data.msg,'error',2000);
-                    }
-                }
-            });
-        }
-        $('.theme-thumbnail').mouseover(function () {
-            $(this).children('.btn-delete').show();
-        });
-        $('.theme-thumbnail').mouseleave(function () {
-            $(this).children('.btn-delete').hide();
-        });
-        $('.theme-body').mouseover(function () {
-            $(this).find(".theme-thumbnail").css("opacity","0.8");
-            $(this).find(".btn-theme-setting,.btn-theme-enable,.btn-theme-update").show();
-        });
-        $('.theme-body').mouseleave(function () {
-            $(this).find(".theme-thumbnail").css("opacity","1");
-            $(this).find(".btn-theme-setting,.btn-theme-enable,.btn-theme-update").hide();
-        });
-        function modelShow(url) {
-            $('#url').val(url);
-            $('#removeThemeModal').modal();
-        }
-        function removeIt(){
-            var url=$.trim($("#url").val());
-            window.location.href=url;
-        }
-    </script>
 </div>
-<@footer></@footer>
+<@footer>
+<script type="application/javascript" id="footer_script">
+
+    /**
+     * 设置主题
+     * @param site_theme 主题名
+     */
+    function setTheme(site_theme) {
+        $.get('/admin/themes/set',{'siteTheme': site_theme},function(data) {
+            if(data.code === 1){
+                halo.showMsgAndRedirect(data.msg,'success',1000,'/admin/themes',"${options.admin_pjax!'true'}");
+            }else{
+                halo.showMsg(data.msg,'error',2000);
+            }
+        },'JSON');
+    }
+
+    var themeThumbnail = $('.theme-thumbnail');
+    var themeBody = $('.theme-body');
+
+    themeThumbnail.mouseover(function () {
+        $(this).children('.btn-delete').show();
+    });
+    themeThumbnail.mouseleave(function () {
+        $(this).children('.btn-delete').hide();
+    });
+    themeBody.mouseover(function () {
+        $(this).find(".theme-thumbnail").css("opacity","0.8");
+        $(this).find(".btn-theme-setting,.btn-theme-enable,.btn-theme-update").show();
+    });
+    themeBody.mouseleave(function () {
+        $(this).find(".theme-thumbnail").css("opacity","1");
+        $(this).find(".btn-theme-setting,.btn-theme-enable,.btn-theme-update").hide();
+    });
+    function modelShow(url) {
+        $('#url').val(url);
+        $('#removeThemeModal').modal();
+    }
+    function removeIt(){
+        var url=$.trim($("#url").val());
+        <#if (options.admin_pjax!'true') == 'true'>
+            pjax.loadUrl(url);
+        <#else>
+            window.location.href = url;
+        </#if>
+    }
+</script>
+</@footer>
 </#compress>

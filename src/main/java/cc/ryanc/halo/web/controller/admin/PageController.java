@@ -4,7 +4,6 @@ import cc.ryanc.halo.model.domain.Gallery;
 import cc.ryanc.halo.model.domain.Link;
 import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.domain.User;
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.dto.LogsRecord;
 import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
@@ -24,20 +23,26 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import static cc.ryanc.halo.model.dto.HaloConst.OPTIONS;
+import static cc.ryanc.halo.model.dto.HaloConst.USER_SESSION_KEY;
 
 /**
  * <pre>
@@ -54,14 +59,19 @@ public class PageController {
 
     @Autowired
     LocaleMessageUtil localeMessageUtil;
+
     @Autowired
     private LinkService linkService;
+
     @Autowired
     private GalleryService galleryService;
+
     @Autowired
     private PostService postService;
+
     @Autowired
     private LogsService logsService;
+
     @Autowired
     private HttpServletRequest request;
 
@@ -73,7 +83,7 @@ public class PageController {
      */
     @GetMapping
     public String pages(Model model) {
-        List<Post> posts = postService.findAll(PostTypeEnum.POST_TYPE_PAGE.getDesc());
+        final List<Post> posts = postService.findAll(PostTypeEnum.POST_TYPE_PAGE.getDesc());
         model.addAttribute("pages", posts);
         return "admin/admin_page";
     }
@@ -97,8 +107,8 @@ public class PageController {
      */
     @GetMapping(value = "/links/edit")
     public String toEditLink(Model model, @RequestParam("linkId") Long linkId) {
-        Optional<Link> link = linkService.findByLinkId(linkId);
-        model.addAttribute("updateLink", link.get());
+        final Optional<Link> link = linkService.findByLinkId(linkId);
+        model.addAttribute("updateLink", link.orElse(new Link()));
         return "admin/admin_page_link";
     }
 
@@ -106,16 +116,21 @@ public class PageController {
      * 处理添加/修改友链的请求并渲染页面
      *
      * @param link Link实体
-     * @return 重定向到/admin/page/links
+     * @return JsonResult
      */
     @PostMapping(value = "/links/save")
-    public String saveLink(@ModelAttribute Link link) {
-        try {
-            linkService.save(link);
-        } catch (Exception e) {
-            log.error("Save/modify friendship link failed: {}", e.getMessage());
+    @ResponseBody
+    public JsonResult saveLink(@Valid Link link, BindingResult result) {
+        if (result.hasErrors()) {
+            for (ObjectError error : result.getAllErrors()) {
+                return new JsonResult(ResultCodeEnum.FAIL.getCode(), error.getDefaultMessage());
+            }
         }
-        return "redirect:/admin/page/links";
+        link = linkService.save(link);
+        if (null == link) {
+            return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.save-failed"));
+        }
+        return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.save-success"));
     }
 
     /**
@@ -138,17 +153,12 @@ public class PageController {
      * 图库管理
      *
      * @param model model
-     * @param page  当前页码
-     * @param size  每页显示的条数
      * @return 模板路径admin/admin_page_gallery
      */
     @GetMapping(value = "/galleries")
     public String gallery(Model model,
-                          @RequestParam(value = "page", defaultValue = "0") Integer page,
-                          @RequestParam(value = "size", defaultValue = "18") Integer size) {
-        Sort sort = new Sort(Sort.Direction.DESC, "galleryId");
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Gallery> galleries = galleryService.findAll(pageable);
+                          @PageableDefault(size = 18, sort = "galleryId", direction = Sort.Direction.DESC) Pageable pageable) {
+        final Page<Gallery> galleries = galleryService.findAll(pageable);
         model.addAttribute("galleries", galleries);
         return "admin/admin_page_gallery";
     }
@@ -181,8 +191,8 @@ public class PageController {
      */
     @GetMapping(value = "/gallery")
     public String gallery(Model model, @RequestParam("galleryId") Long galleryId) {
-        Optional<Gallery> gallery = galleryService.findByGalleryId(galleryId);
-        model.addAttribute("gallery", gallery.get());
+        final Optional<Gallery> gallery = galleryService.findByGalleryId(galleryId);
+        model.addAttribute("gallery", gallery.orElse(new Gallery()));
         return "admin/widget/_gallery-detail";
     }
 
@@ -212,7 +222,7 @@ public class PageController {
      */
     @GetMapping(value = "/new")
     public String newPage(Model model) {
-        List<String> customTpls = HaloUtils.getCustomTpl(HaloConst.OPTIONS.get(BlogPropertiesEnum.THEME.getProp()));
+        final List<String> customTpls = HaloUtils.getCustomTpl(OPTIONS.get(BlogPropertiesEnum.THEME.getProp()));
         model.addAttribute("customTpls", customTpls);
         return "admin/admin_page_md_editor";
     }
@@ -229,24 +239,21 @@ public class PageController {
         String msg = localeMessageUtil.getMessage("code.admin.common.save-success");
         try {
             //发表用户
-            User user = (User) session.getAttribute(HaloConst.USER_SESSION_KEY);
+            final User user = (User) session.getAttribute(USER_SESSION_KEY);
             post.setUser(user);
             post.setPostType(PostTypeEnum.POST_TYPE_PAGE.getDesc());
             if (null != post.getPostId()) {
-                Post oldPost = postService.findByPostId(post.getPostId()).get();
+                final Post oldPost = postService.findByPostId(post.getPostId()).get();
                 if (null == post.getPostDate()) {
                     post.setPostDate(DateUtil.date());
                 }
                 post.setPostViews(oldPost.getPostViews());
                 msg = localeMessageUtil.getMessage("code.admin.common.update-success");
-            } else {
-                post.setPostDate(DateUtil.date());
             }
-            post.setPostUpdate(DateUtil.date());
             post.setPostContent(MarkdownUtils.renderMarkdown(post.getPostContentMd()));
             //当没有选择文章缩略图的时候，自动分配一张内置的缩略图
             if (StrUtil.equals(post.getPostThumbnail(), BlogPropertiesEnum.DEFAULT_THUMBNAIL.getProp())) {
-                post.setPostThumbnail("/static/images/thumbnail/thumbnail-" + RandomUtil.randomInt(1, 10) + ".jpg");
+                post.setPostThumbnail("/static/halo-frontend/images/thumbnail/thumbnail-" + RandomUtil.randomInt(1, 11) + ".jpg");
             }
             postService.save(post);
             logsService.save(LogsRecord.PUSH_PAGE, post.getPostTitle(), request);
@@ -266,8 +273,8 @@ public class PageController {
      */
     @GetMapping(value = "/edit")
     public String editPage(@RequestParam("pageId") Long pageId, Model model) {
-        Optional<Post> post = postService.findByPostId(pageId);
-        List<String> customTpls = HaloUtils.getCustomTpl(HaloConst.OPTIONS.get(BlogPropertiesEnum.THEME.getProp()));
+        final Optional<Post> post = postService.findByPostId(pageId);
+        final List<String> customTpls = HaloUtils.getCustomTpl(OPTIONS.get(BlogPropertiesEnum.THEME.getProp()));
         model.addAttribute("post", post.orElse(new Post()));
         model.addAttribute("customTpls", customTpls);
         return "admin/admin_page_md_editor";
@@ -282,7 +289,7 @@ public class PageController {
     @GetMapping(value = "/checkUrl")
     @ResponseBody
     public JsonResult checkUrlExists(@RequestParam("postUrl") String postUrl) {
-        Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_PAGE.getDesc());
+        final Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_PAGE.getDesc());
         if (null != post) {
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
         }

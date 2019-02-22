@@ -32,8 +32,8 @@ public class ApiMenuController {
      * 获取所有菜单
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -55,7 +55,7 @@ public class ApiMenuController {
      */
     @GetMapping
     public JsonResult menus() {
-        List<Menu> menus = menuService.findAll();
+        final List<Menu> menus = menuService.findAll();
         if (null != menus && menus.size() > 0) {
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), menus);
         } else {

@@ -3,12 +3,8 @@ package cc.ryanc.halo.web.controller.front;
 import cc.ryanc.halo.model.domain.Comment;
 import cc.ryanc.halo.model.domain.Gallery;
 import cc.ryanc.halo.model.domain.Post;
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.ListPage;
-import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
-import cc.ryanc.halo.model.enums.CommentStatusEnum;
-import cc.ryanc.halo.model.enums.PostTypeEnum;
-import cc.ryanc.halo.model.enums.TrueFalseEnum;
+import cc.ryanc.halo.model.enums.*;
 import cc.ryanc.halo.service.CommentService;
 import cc.ryanc.halo.service.GalleryService;
 import cc.ryanc.halo.service.PostService;
@@ -24,6 +20,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+
+import static cc.ryanc.halo.model.dto.HaloConst.OPTIONS;
 
 /**
  * <pre>
@@ -52,7 +50,7 @@ public class FrontPageController extends BaseController {
      */
     @GetMapping(value = "/gallery")
     public String gallery(Model model) {
-        List<Gallery> galleries = galleryService.findAll();
+        final List<Gallery> galleries = galleryService.findAll();
         model.addAttribute("galleries", galleries);
         return this.render("gallery");
     }
@@ -78,25 +76,24 @@ public class FrontPageController extends BaseController {
     public String getPage(@PathVariable(value = "postUrl") String postUrl,
                           @RequestParam(value = "cp", defaultValue = "1") Integer cp,
                           Model model) {
-        Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_PAGE.getDesc());
-        if (null == post) {
+        final Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_PAGE.getDesc());
+        if (null == post || !post.getPostStatus().equals(PostStatusEnum.PUBLISHED.getCode())) {
             return this.renderNotFound();
         }
         List<Comment> comments = null;
-        if (StrUtil.equals(HaloConst.OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()), TrueFalseEnum.TRUE.getDesc()) || HaloConst.OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()) == null) {
+        if (StrUtil.equals(OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()), TrueFalseEnum.TRUE.getDesc()) || OPTIONS.get(BlogPropertiesEnum.NEW_COMMENT_NEED_CHECK.getProp()) == null) {
             comments = commentService.findCommentsByPostAndCommentStatus(post, CommentStatusEnum.PUBLISHED.getCode());
         } else {
             comments = commentService.findCommentsByPostAndCommentStatusNot(post, CommentStatusEnum.RECYCLE.getCode());
         }
         //默认显示10条
-        Integer size = 10;
-        //获取每页评论条数
-        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()))) {
-            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()));
+        int size = 10;
+        if (StrUtil.isNotBlank(OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()))) {
+            size = Integer.parseInt(OPTIONS.get(BlogPropertiesEnum.INDEX_COMMENTS.getProp()));
         }
         //评论分页
-        ListPage<Comment> commentsPage = new ListPage<Comment>(CommentUtil.getComments(comments), cp, size);
-        int[] rainbow = PageUtil.rainbow(cp, commentsPage.getTotalPage(), 3);
+        final ListPage<Comment> commentsPage = new ListPage<Comment>(CommentUtil.getComments(comments), cp, size);
+        final int[] rainbow = PageUtil.rainbow(cp, commentsPage.getTotalPage(), 3);
         model.addAttribute("is_page", true);
         model.addAttribute("post", post);
         model.addAttribute("comments", commentsPage);

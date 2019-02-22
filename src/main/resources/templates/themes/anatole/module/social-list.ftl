@@ -1,8 +1,8 @@
 <ul class="social-links">
 
-    <#if options.theme_anatole_sns_rss?default('true')=='true'>
+    <#if (options.theme_anatole_sns_rss!'true')=='true'>
     <li>
-        <a target="_blank" href="/atom.xml">
+        <a target="_blank" href="${options.blog_url!}/atom.xml">
             <i class="fa fa-rss"></i>
         </a>
     </li>

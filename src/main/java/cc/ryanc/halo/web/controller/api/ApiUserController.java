@@ -30,8 +30,8 @@ public class ApiUserController {
      * 获取博主信息
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -50,7 +50,7 @@ public class ApiUserController {
      */
     @GetMapping
     public JsonResult user() {
-        User user = userService.findUser();
+        final User user = userService.findUser();
         return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), user);
     }
 }

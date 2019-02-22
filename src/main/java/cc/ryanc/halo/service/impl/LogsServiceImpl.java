@@ -10,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -36,10 +35,9 @@ public class LogsServiceImpl implements LogsService {
      */
     @Override
     public void save(String logTitle, String logContent, HttpServletRequest request) {
-        Logs logs = new Logs();
+        final Logs logs = new Logs();
         logs.setLogTitle(logTitle);
         logs.setLogContent(logContent);
-        logs.setLogCreated(new Date());
         logs.setLogIp(ServletUtil.getClientIP(request));
         logsRepository.save(logs);
     }

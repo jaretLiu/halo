@@ -53,8 +53,8 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @CacheEvict(value = {COMMENTS_CACHE_NAME, POSTS_CACHE_NAME}, allEntries = true, beforeInvocation = true)
     public Optional<Comment> remove(Long commentId) {
-        Optional<Comment> comment = this.findCommentById(commentId);
-        commentRepository.delete(comment.get());
+        final Optional<Comment> comment = this.findCommentById(commentId);
+        commentRepository.delete(comment.orElse(null));
         return comment;
     }
 
@@ -102,7 +102,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @CacheEvict(value = COMMENTS_CACHE_NAME, allEntries = true, beforeInvocation = true)
     public Comment updateCommentStatus(Long commentId, Integer status) {
-        Optional<Comment> comment = findCommentById(commentId);
+        final Optional<Comment> comment = findCommentById(commentId);
         comment.get().setCommentStatus(status);
         return commentRepository.save(comment.get());
     }
@@ -197,5 +197,16 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Long getCount() {
         return commentRepository.count();
+    }
+
+    /**
+     * 获取最近的评论
+     *
+     * @param limit limit
+     * @return List
+     */
+    @Override
+    public List<Comment> getRecentComments(int limit) {
+        return commentRepository.getCommentsByLimit(limit);
     }
 }

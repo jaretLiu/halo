@@ -12,7 +12,7 @@
                 <a data-pjax="true" href="/admin">
                     <i class="fa fa-dashboard"></i> <@spring.message code='admin.index.bread.index' /></a>
             </li>
-            <li><a data-pjax="true" href="#"><@spring.message code='admin.user.profile.bread.user' /></a></li>
+            <li><a data-pjax="true" href="javascript:void(0)"><@spring.message code='admin.user.profile.bread.user' /></a></li>
             <li class="active"><@spring.message code='admin.user.profile.title' /></li>
         </ol>
     </section>
@@ -67,7 +67,7 @@
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="userAvatar" name="userAvatar" value="${user.userAvatar!}">
                                                 <span class="input-group-btn">
-                                                    <button class="btn btn-default " type="button" onclick="halo.layerModal('/admin/attachments/select?id=userAvatar','<@spring.message code="common.js.all-attachment" />')"><@spring.message code='common.btn.choose' /></button>
+                                                    <button class="btn btn-default btn-flat" type="button" onclick="halo.layerModal('/admin/attachments/select?id=userAvatar','<@spring.message code="common.js.all-attachment" />')"><@spring.message code='common.btn.choose' /></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -121,54 +121,43 @@
             </div>
         </div>
     </section>
-    <@compress single_line=true>
-    <script>
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip()
-        });
-        function saveUser(option) {
-            var param = $('#'+option).serialize();
-            $.ajax({
-                type: 'post',
-                url: '/admin/profile/save',
-                data: param,
-                success: function (data) {
-                    if(data.code==1){
-                        halo.showMsgAndReload(data.msg,'success',1000);
-                    }else{
-                        halo.showMsg(data.msg,'error',2000);
-                    }
-                }
-            });
-        }
-        function changPass() {
-            var beforePass = $('#beforePass').val();
-            var newPass = $('#newPass').val();
-            var reNewPass = $('#reNewPass').val();
-            if(beforePass==""||newPass==""||reNewPass==""){
-                halo.showMsg("<@spring.message code='common.js.info-no-complete' />",'info',2000);
-                return;
-            }
-            if(newPass!=reNewPass){
-                halo.showMsg("<@spring.message code='admin.user.profile.form.password.no-same' />",'error',2000);
-                return;
-            }
-            var param = $('#passForm').serialize();
-            $.ajax({
-                type: 'post',
-                url: '/admin/profile/changePass',
-                data: param,
-                success: function (data) {
-                    if(data.code==1){
-                        halo.showMsgAndReload(data.msg,'success',1000);
-                    }else{
-                        halo.showMsg(data.msg,'error',2000);
-                    }
-                }
-            });
-        }
-    </script>
-    </@compress>
 </div>
-<@footer></@footer>
+<@footer>
+<script type="application/javascript" id="footer_script">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    });
+    function saveUser(option) {
+        var param = $('#'+option).serialize();
+        $.post('/admin/profile/save',param,function (data) {
+            if(data.code === 1){
+                halo.showMsgAndRedirect(data.msg,'success',1000,'/admin/profile',"${options.admin_pjax!'true'}");
+            }else{
+                halo.showMsg(data.msg,'error',2000);
+            }
+        },'JSON');
+    }
+    function changPass() {
+        var beforePass = $('#beforePass').val();
+        var newPass = $('#newPass').val();
+        var reNewPass = $('#reNewPass').val();
+        if(beforePass===""||newPass===""||reNewPass===""){
+            halo.showMsg("<@spring.message code='common.js.info-no-complete' />",'info',2000);
+            return;
+        }
+        if(newPass!==reNewPass){
+            halo.showMsg("<@spring.message code='admin.user.profile.form.password.no-same' />",'error',2000);
+            return;
+        }
+        var param = $('#passForm').serialize();
+        $.post('/admin/profile/changePass',param,function (data) {
+            if(data.code === 1){
+                halo.showMsgAndRedirect(data.msg,'success',1000,'/admin/profile',"${options.admin_pjax!'true'}");
+            }else{
+                halo.showMsg(data.msg,'error',2000);
+            }
+        },'JSON');
+    }
+</script>
+</@footer>
 </#compress>

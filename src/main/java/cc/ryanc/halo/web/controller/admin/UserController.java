@@ -1,7 +1,6 @@
 package cc.ryanc.halo.web.controller.admin;
 
 import cc.ryanc.halo.model.domain.User;
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.enums.ResultCodeEnum;
 import cc.ryanc.halo.service.UserService;
@@ -17,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+
+import static cc.ryanc.halo.model.dto.HaloConst.USER_SESSION_KEY;
 
 /**
  * <pre>
@@ -68,7 +69,7 @@ public class UserController {
             }
             userService.save(user);
             configuration.setSharedVariable("user", userService.findUser());
-            session.removeAttribute(HaloConst.USER_SESSION_KEY);
+            session.removeAttribute(USER_SESSION_KEY);
         } catch (Exception e) {
             log.error("Failed to modify user profile: {}", e.getMessage());
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.edit-failed"));
@@ -92,11 +93,11 @@ public class UserController {
                                  @ModelAttribute("userId") Long userId,
                                  HttpSession session) {
         try {
-            User user = userService.findByUserIdAndUserPass(userId, SecureUtil.md5(beforePass));
+            final User user = userService.findByUserIdAndUserPass(userId, SecureUtil.md5(beforePass));
             if (null != user) {
                 user.setUserPass(SecureUtil.md5(newPass));
                 userService.save(user);
-                session.removeAttribute(HaloConst.USER_SESSION_KEY);
+                session.removeAttribute(USER_SESSION_KEY);
             } else {
                 return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.user.old-password-error"));
             }

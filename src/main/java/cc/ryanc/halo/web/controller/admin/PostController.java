@@ -2,7 +2,6 @@ package cc.ryanc.halo.web.controller.admin;
 
 import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.domain.User;
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.dto.LogsRecord;
 import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
@@ -15,17 +14,15 @@ import cc.ryanc.halo.utils.HaloUtils;
 import cc.ryanc.halo.utils.LocaleMessageUtil;
 import cc.ryanc.halo.utils.MarkdownUtils;
 import cc.ryanc.halo.web.controller.core.BaseController;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HtmlUtil;
+import cn.hutool.crypto.SecureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -37,6 +34,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import static cc.ryanc.halo.model.dto.HaloConst.OPTIONS;
+import static cc.ryanc.halo.model.dto.HaloConst.USER_SESSION_KEY;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * <pre>
@@ -83,18 +84,13 @@ public class PostController extends BaseController {
      * 处理后台获取文章列表的请求
      *
      * @param model model
-     * @param page  当前页码
-     * @param size  每页显示的条数
      * @return 模板路径admin/admin_post
      */
     @GetMapping
     public String posts(Model model,
                         @RequestParam(value = "status", defaultValue = "0") Integer status,
-                        @RequestParam(value = "page", defaultValue = "0") Integer page,
-                        @RequestParam(value = "size", defaultValue = "10") Integer size) {
-        Sort sort = new Sort(Sort.Direction.DESC, "postDate");
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Post> posts = postService.findPostByStatus(status, PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
+                        @PageableDefault(sort = "postDate", direction = DESC) Pageable pageable) {
+        final Page<Post> posts = postService.findPostByStatus(status, PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
         model.addAttribute("posts", posts);
         model.addAttribute("publishCount", postService.getCountByStatus(PostStatusEnum.PUBLISHED.getCode()));
         model.addAttribute("draftCount", postService.getCountByStatus(PostStatusEnum.DRAFT.getCode()));
@@ -108,20 +104,15 @@ public class PostController extends BaseController {
      *
      * @param model   Model
      * @param keyword keyword 关键字
-     * @param page    page 当前页码
-     * @param size    size 每页显示条数
      * @return 模板路径admin/admin_post
      */
     @PostMapping(value = "/search")
     public String searchPost(Model model,
                              @RequestParam(value = "keyword") String keyword,
-                             @RequestParam(value = "page", defaultValue = "0") Integer page,
-                             @RequestParam(value = "size", defaultValue = "10") Integer size) {
+                             @PageableDefault(sort = "postId", direction = DESC) Pageable pageable) {
         try {
-            //排序规则
-            Sort sort = new Sort(Sort.Direction.DESC, "postId");
-            Pageable pageable = PageRequest.of(page, size, sort);
-            model.addAttribute("posts", postService.searchPosts(keyword, pageable));
+            Page<Post> posts = postService.searchPostsBy(keyword, PostTypeEnum.POST_TYPE_POST.getDesc(), PostStatusEnum.PUBLISHED.getCode(), pageable);
+            model.addAttribute("posts", posts);
         } catch (Exception e) {
             log.error("未知错误：{}", e.getMessage());
         }
@@ -137,7 +128,7 @@ public class PostController extends BaseController {
      */
     @GetMapping(value = "/view")
     public String viewPost(@RequestParam("postId") Long postId, Model model) {
-        Optional<Post> post = postService.findByPostId(postId);
+        final Optional<Post> post = postService.findByPostId(postId);
         model.addAttribute("post", post.orElse(new Post()));
         return this.render("post");
     }
@@ -161,8 +152,8 @@ public class PostController extends BaseController {
      */
     @GetMapping(value = "/edit")
     public String editPost(@RequestParam("postId") Long postId, Model model) {
-        Optional<Post> post = postService.findByPostId(postId);
-        model.addAttribute("post", post.get());
+        final Optional<Post> post = postService.findByPostId(postId);
+        model.addAttribute("post", post.orElse(new Post()));
         return "admin/admin_post_edit";
     }
 
@@ -180,31 +171,18 @@ public class PostController extends BaseController {
                            @RequestParam("cateList") List<String> cateList,
                            @RequestParam("tagList") String tagList,
                            HttpSession session) {
-        User user = (User) session.getAttribute(HaloConst.USER_SESSION_KEY);
+        final User user = (User) session.getAttribute(USER_SESSION_KEY);
         try {
             post.setPostContent(MarkdownUtils.renderMarkdown(post.getPostContentMd()));
-            //摘要字数
-            int postSummary = 50;
-            if (StrUtil.isNotEmpty(HaloConst.OPTIONS.get(BlogPropertiesEnum.POST_SUMMARY.getProp()))) {
-                postSummary = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.POST_SUMMARY.getProp()));
-            }
-            //设置文章摘要
-            String summaryText = StrUtil.cleanBlank(HtmlUtil.cleanHtmlTag(post.getPostContent()));
-            if (summaryText.length() > postSummary) {
-                String summary = summaryText.substring(0, postSummary);
-                post.setPostSummary(summary);
-            } else {
-                post.setPostSummary(summaryText);
-            }
-            post.setPostDate(DateUtil.date());
-            post.setPostUpdate(DateUtil.date());
             post.setUser(user);
-
             post = postService.buildCategoriesAndTags(post, cateList, tagList);
             post.setPostUrl(urlFilter(post.getPostUrl()));
+            if (StrUtil.isNotEmpty(post.getPostPassword())) {
+                post.setPostPassword(SecureUtil.md5(post.getPostPassword()));
+            }
             //当没有选择文章缩略图的时候，自动分配一张内置的缩略图
             if (StrUtil.equals(post.getPostThumbnail(), BlogPropertiesEnum.DEFAULT_THUMBNAIL.getProp())) {
-                post.setPostThumbnail("/static/images/thumbnail/thumbnail-" + RandomUtil.randomInt(1, 10) + ".jpg");
+                post.setPostThumbnail("/static/halo-frontend/images/thumbnail/thumbnail-" + RandomUtil.randomInt(1, 11) + ".jpg");
             }
             postService.save(post);
             logsService.save(LogsRecord.PUSH_POST, post.getPostTitle(), request);
@@ -222,7 +200,6 @@ public class PostController extends BaseController {
      * @param post     post
      * @param cateList 分类目录
      * @param tagList  标签
-     * @param session  session
      * @return JsonResult
      */
     @PostMapping(value = "/update")
@@ -231,8 +208,7 @@ public class PostController extends BaseController {
                              @RequestParam("cateList") List<String> cateList,
                              @RequestParam("tagList") String tagList) {
         //old data
-        Post oldPost = postService.findByPostId(post.getPostId()).orElse(new Post());
-        post.setPostUpdate(new Date());
+        final Post oldPost = postService.findByPostId(post.getPostId()).orElse(new Post());
         post.setPostViews(oldPost.getPostViews());
         post.setPostContent(MarkdownUtils.renderMarkdown(post.getPostContentMd()));
         post.setUser(oldPost.getUser());
@@ -240,6 +216,13 @@ public class PostController extends BaseController {
             post.setPostDate(new Date());
         }
         post = postService.buildCategoriesAndTags(post, cateList, tagList);
+        if (StrUtil.isNotEmpty(post.getPostPassword())) {
+            post.setPostPassword(SecureUtil.md5(post.getPostPassword()));
+        }
+        //当没有选择文章缩略图的时候，自动分配一张内置的缩略图
+        if (StrUtil.equals(post.getPostThumbnail(), BlogPropertiesEnum.DEFAULT_THUMBNAIL.getProp())) {
+            post.setPostThumbnail("/static/halo-frontend/images/thumbnail/thumbnail-" + RandomUtil.randomInt(1, 11) + ".jpg");
+        }
         post = postService.save(post);
         if (null != post) {
             return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.common.update-success"));
@@ -292,7 +275,7 @@ public class PostController extends BaseController {
     @GetMapping(value = "/remove")
     public String removePost(@RequestParam("postId") Long postId, @RequestParam("postType") String postType) {
         try {
-            Optional<Post> post = postService.findByPostId(postId);
+            final Optional<Post> post = postService.findByPostId(postId);
             postService.remove(postId);
             logsService.save(LogsRecord.REMOVE_POST, post.get().getPostTitle(), request);
         } catch (Exception e) {
@@ -333,7 +316,7 @@ public class PostController extends BaseController {
     @ResponseBody
     public JsonResult checkUrlExists(@RequestParam("postUrl") String postUrl) {
         postUrl = urlFilter(postUrl);
-        Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_POST.getDesc());
+        final Post post = postService.findByPostUrl(postUrl, PostTypeEnum.POST_TYPE_POST.getDesc());
         if (null != post) {
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.url-is-exists"));
         }
@@ -352,16 +335,16 @@ public class PostController extends BaseController {
         if (StrUtil.isBlank(baiduToken)) {
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.post.no-baidu-token"));
         }
-        String blogUrl = HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp());
-        List<Post> posts = postService.findAll(PostTypeEnum.POST_TYPE_POST.getDesc());
-        StringBuilder urls = new StringBuilder();
+        final String blogUrl = OPTIONS.get(BlogPropertiesEnum.BLOG_URL.getProp());
+        final List<Post> posts = postService.findAll(PostTypeEnum.POST_TYPE_POST.getDesc());
+        final StringBuilder urls = new StringBuilder();
         for (Post post : posts) {
             urls.append(blogUrl);
             urls.append("/archives/");
             urls.append(post.getPostUrl());
             urls.append("\n");
         }
-        String result = HaloUtils.baiduPost(blogUrl, baiduToken, urls.toString());
+        final String result = HaloUtils.baiduPost(blogUrl, baiduToken, urls.toString());
         if (StrUtil.isEmpty(result)) {
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.post.push-to-baidu-failed"));
         }

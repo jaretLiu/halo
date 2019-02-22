@@ -29,8 +29,8 @@ public class ApiTagController {
      * 获取所有标签
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -49,7 +49,7 @@ public class ApiTagController {
      */
     @GetMapping
     public JsonResult tags() {
-        List<Tag> tags = tagService.findAll();
+        final List<Tag> tags = tagService.findAll();
         if (null != tags && tags.size() > 0) {
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), tags);
         } else {
@@ -61,8 +61,8 @@ public class ApiTagController {
      * 获取单个标签的信息
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -80,7 +80,7 @@ public class ApiTagController {
      */
     @GetMapping(value = "/{tagUrl}")
     public JsonResult tags(@PathVariable("tagUrl") String tagUrl) {
-        Tag tag = tagService.findByTagUrl(tagUrl);
+        final Tag tag = tagService.findByTagUrl(tagUrl);
         if (null != tag) {
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), tag);
         } else {

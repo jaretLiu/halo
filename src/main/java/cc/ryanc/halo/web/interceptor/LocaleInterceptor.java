@@ -1,6 +1,5 @@
 package cc.ryanc.halo.web.interceptor;
 
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
 import cc.ryanc.halo.model.enums.LocaleEnum;
 import cn.hutool.core.util.StrUtil;
@@ -13,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Locale;
 
+import static cc.ryanc.halo.model.dto.HaloConst.OPTIONS;
+
 /**
  * @author : wangry
  * @version : 1.0
@@ -23,7 +24,11 @@ public class LocaleInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if (StrUtil.equals(LocaleEnum.EN_US.getValue(), HaloConst.OPTIONS.get(BlogPropertiesEnum.BLOG_LOCALE.getProp()))) {
+        final Object attribute = request.getSession().getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
+        if (null != attribute) {
+            return true;
+        }
+        if (StrUtil.equals(LocaleEnum.EN_US.getValue(), OPTIONS.get(BlogPropertiesEnum.BLOG_LOCALE.getProp()))) {
             request.getSession().setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, new Locale("en", "US"));
         } else {
             request.getSession().setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, new Locale("zh", "CN"));

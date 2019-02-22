@@ -46,7 +46,7 @@ public class MarkdownUtils {
      * @return String
      */
     public static String renderMarkdown(String content) {
-        Node document = PARSER.parse(content);
+        final Node document = PARSER.parse(content);
         return RENDERER.render(document);
     }
 
@@ -57,8 +57,8 @@ public class MarkdownUtils {
      * @return Map
      */
     public static Map<String, List<String>> getFrontMatter(String content) {
-        YamlFrontMatterVisitor visitor = new YamlFrontMatterVisitor();
-        Node document = PARSER.parse(content);
+        final YamlFrontMatterVisitor visitor = new YamlFrontMatterVisitor();
+        final Node document = PARSER.parse(content);
         document.accept(visitor);
         return visitor.getData();
     }

@@ -2,20 +2,20 @@
 <#include "module/_macro.ftl">
 <@head>${options.blog_title!} | <@spring.message code='admin.posts.edit.title' /></@head>
 <div class="content-wrapper">
-    <link rel="stylesheet" href="/static/plugins/simplemde/simplemde.min.css">
-    <link rel="stylesheet" href="/static/plugins/jquery-tageditor/jquery.tag-editor.css">
-    <link rel="stylesheet" href="/static/plugins/datetimepicker/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="/static/halo-backend/plugins/easymde/easymde.min.css">
+    <link rel="stylesheet" href="/static/halo-backend/plugins/jquery-tageditor/jquery.tag-editor.css">
+    <link rel="stylesheet" href="/static/halo-backend/plugins/datetimepicker/css/bootstrap-datetimepicker.min.css">
     <style type="text/css">
         #postTitle{font-weight: 400;}
     </style>
     <section class="content-header" id="animated-header">
         <h1 style="display: inline-block;"><@spring.message code='admin.posts.edit.title' /></h1>
-        <a class="btn-header" id="btnOpenAttach" href="#" onclick="halo.layerModal('/admin/attachments/select?type=post','<@spring.message code="common.js.all-attachment" />')">
+        <a class="btn-header" id="btnOpenAttach" href="javascript:void(0)" onclick="halo.layerModal('/admin/attachments/select?type=post','<@spring.message code="common.js.all-attachment" />')">
             <@spring.message code='admin.editor.btn.attachs' />
         </a>
         <ol class="breadcrumb">
             <li>
-                <a data-pjax="true" href="#"><i class="fa fa-dashboard"></i> <@spring.message code='admin.index.bread.index' /></a>
+                <a data-pjax="true" href="javascript:void(0)"><i class="fa fa-dashboard"></i> <@spring.message code='admin.index.bread.index' /></a>
             </li>
             <li>
                 <a data-pjax="true" href="/admin/posts"><@spring.message code='admin.posts.title' /></a>
@@ -28,12 +28,12 @@
             <div class="col-md-9">
                 <input type="hidden" id="postId" name="postId" value="${post.postId?c}">
                 <div style="margin-bottom: 10px;">
-                    <input type="text" class="form-control input-lg" id="postTitle" name="postTitle" placeholder="<@spring.message code='admin.posts.edit.form.title.placeholder' />" onblur="autoComplateUrl();" value="${post.postTitle!}">
+                    <input type="text" class="form-control input-lg" id="postTitle" name="postTitle" placeholder="<@spring.message code='admin.posts.edit.form.title.placeholder' />" onblur="autoComplateUrl();" value="${post.postTitle!}" autocomplete="off">
                 </div>
                 <div style="display: block;margin-bottom: 10px;">
                     <span>
                         <@spring.message code='admin.editor.form.url' />
-                        <a href="#">${options.blog_url!}/archives/<span id="postUrl">${post.postUrl!}</span>/</a>
+                        <a href="javascript:void(0)">${options.blog_url!}/archives/<span id="postUrl">${post.postUrl!}</span>/</a>
                         <button class="btn btn-default btn-sm " id="btn_input_postUrl"><@spring.message code='common.btn.edit' /></button>
                         <button class="btn btn-default btn-sm " id="btn_change_postUrl" onclick="urlOnBlurAuto()" style="display: none;"><@spring.message code='common.btn.define' /></button>
                     </span>
@@ -68,7 +68,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="postDate" class="control-label">发布时间：</label>
+                            <label for="postPassword" class="control-label"><@spring.message code='admin.editor.post.password' /></label>
+                            <input type="password" class="form-control" id="postPassword" name="postPassword" value="${post.postPassword!}" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="postDate" class="control-label"><@spring.message code='admin.editor.post.date' /></label>
                             <input type="text" class="form-control" id="postDate" name="postDate" value="${post.postDate!?string('yyyy-MM-dd HH:mm')}">
                         </div>
                     </div>
@@ -143,190 +147,186 @@
                     </div>
                     <div class="box-body">
                         <div>
-                            <img src="${post.postThumbnail!'/static/images/thumbnail/thumbnail.png'}" class="img-responsive img-thumbnail" id="selectImg" onclick="halo.layerModal('/admin/attachments/select?id=selectImg','<@spring.message code="common.js.all-attachment" />')" style="cursor: pointer;">
+                            <img src="${post.postThumbnail!'/static/halo-frontend/images/thumbnail/thumbnail.png'}" class="img-responsive img-thumbnail" id="selectImg" onclick="halo.layerModal('/admin/attachments/select?id=selectImg','<@spring.message code="common.js.all-attachment" />')" style="cursor: pointer;">
                         </div>
+                    </div>
+                    <div class="box-footer">
+                        <button onclick="removeThumbnail()" class="btn btn-default btn-sm "><@spring.message code='common.btn.remove' /></button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <script src="/static/plugins/simplemde/simplemde.min.js"></script>
-    <script src="/static/plugins/inline-attachment/codemirror-4.inline-attachment.min.js"></script>
-    <script src="/static/plugins/jquery-tageditor/jquery.tag-editor.min.js"></script>
-    <script src="/static/plugins/jquery-tageditor/jquery.caret.min.js"></script>
-    <script src="/static/plugins/hz2py/jQuery.Hz2Py-min.js"></script>
-    <script src="/static/plugins/datetimepicker/js/bootstrap-datetimepicker.min.js"></script>
-    <script src="/static/plugins/datetimepicker/js/locales/bootstrap-datetimepicker.zh-CN.js"></script>
-    <script src="//cdnjs.loli.net/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-    <script>
-
-        $('#postDate').datetimepicker({
-            format: 'yyyy-mm-dd hh:ii',
-            language: 'zh-CN',
-            weekStart: 1,
-            todayBtn: 1,
-            autoclose: 1
-        });
-
-        MathJax.Hub.Config({
-            tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
-        });
-
-        var QUEUE = MathJax.Hub.queue;
-
-        /**
-         * 加载编辑器
-         */
-        var simplemde = new SimpleMDE({
-            element: document.getElementById("editorarea"),
-            autoDownloadFontAwesome: false,
-            autofocus: true,
-            autosave: {
-                enabled: true,
-                uniqueId: "editor-temp-${post.postId!}",
-                delay: 10000
-            },
-            renderingConfig: {
-                codeSyntaxHighlighting: true
-            },
-            previewRender: function(plainText) {
-                var preview = document.getElementsByClassName("editor-preview-side")[0];
-                preview.innerHTML = this.parent.markdown(plainText);
-                preview.setAttribute('id','editor-preview');
-                MathJax.Hub.Queue(["Typeset",MathJax.Hub,"editor-preview"]);
-                return preview.innerHTML;
-            },
-            showIcons: ["code", "table"],
-            status: ["autosave", "lines", "words"],
-            tabSize: 4
-        });
-
-        /**
-         * 方法来自https://gitee.com/supperzh/zb-blog/blob/master/src/main/resources/templates/article/publish.html#L255
-         */
-        $(function () {
-            inlineAttachment.editors.codemirror4.attach(simplemde.codemirror, {
-                uploadUrl: "/admin/attachments/upload"
-            });
-        })
-
-        /**
-         * 初始化标签
-         */
-        $('#tagList').tagEditor({
-            delimiter: ',',
-            placeholder: '<@spring.message code="admin.posts.edit.form.tag.placeholder" />',
-            forceLowercase: false
-        });
-
-        /**
-         * 加载该文章已有的标签
-         */
-        <#if post.tags?size gt 0>
-            <#list post.tags as tag>
-            $('#tagList').tagEditor('addTag','${tag.tagName}');
-            </#list>
-        </#if>
-
-        $('#chooseTag').change(function () {
-            $('#tagList').tagEditor('addTag',$(this).val());
-        });
-
-        /**
-         * 自动填充路径，并且将汉字转化成拼音以-隔开
-         */
-        function autoComplateUrl() {
-            var titleVal = $("#postTitle").val();
-            if(titleVal!="" && titleVal!=null && $("#postUrl").html()==''){
-                var result = $("#postTitle").toPinyin().toLowerCase();
-                $("#postUrl").html(result.substring(0,result.length-1));
-            }
-        }
-
-        /**
-         * 检测是否已经存在该链接
-         * @constructor
-         */
-        function urlOnBlurAuto() {
-            if($('#newPostUrl').val()===""){
-                halo.showMsg("<@spring.message code='admin.editor.js.no-url' />",'info',2000);
-                return;
-            }
-            $.ajax({
-                type: 'GET',
-                url: '/admin/posts/checkUrl',
-                async: false,
-                data: {
-                    'postUrl': $('#newPostUrl').val()
-                },
-                success: function (data) {
-                    if(data.code==0){
-                        halo.showMsg(data.msg,'error',2000);
-                        return;
-                    }else{
-                        $('#postUrl').html($('#newPostUrl').val());
-                        $('#btn_change_postUrl').hide();
-                        $('#btn_input_postUrl').show();
-                    }
-                }
-            });
-        }
-        $('#btn_input_postUrl').click(function () {
-            var postUrl = $("#postUrl").html();
-            $('#postUrl').html("<input type='text' id='newPostUrl' onblur='urlOnBlurAuto()' value='"+postUrl+"'>");
-            $(this).hide();
-            $('#btn_change_postUrl').show();
-        });
-        var postTitle = $("#postTitle");
-        var cateList = new Array();
-
-        /**
-         * 提交文章
-         * @param status 文章状态
-         */
-        function push(status) {
-            var Title = "";
-            if(postTitle.val()){
-                Title = postTitle.val();
-            }else{
-                halo.showMsg("<@spring.message code='admin.editor.js.no-title' />",'info',2000);
-                return;
-            }
-            $('input[name="categories"]:checked').each(function(){
-                cateList.push($(this).val());
-            });
-            if($('#postUrl').html()===""){
-                halo.showMsg("<@spring.message code='admin.editor.js.no-url' />",'info',2000);
-                return;
-            }
-            $.ajax({
-                type: 'POST',
-                url: '/admin/posts/update',
-                async: false,
-                data: {
-                    'postId': $('#postId').val(),
-                    'postStatus': status,
-                    'postTitle': Title,
-                    'postUrl' : $('#postUrl').html().toString(),
-                    'postContentMd': simplemde.value(),
-                    'postThumbnail': $('#selectImg').attr('src'),
-                    'cateList' : cateList.toString(),
-                    'tagList' : $('#tagList').tagEditor('getTags')[0].tags.toString(),
-                    'allowComment' : $('#allowComment').val(),
-                    'postDate' : $("#postDate").val()
-                },
-                success: function (data) {
-                    if(data.code==1){
-                        //清除自动保存的内容
-                        simplemde.clearAutosavedValue();
-                        halo.showMsgAndRedirect(data.msg,'success',1000,'/admin/posts');
-                    }else{
-                        halo.showMsg(data.msg,'error',2000);
-                    }
-                }
-            });
-        }
-    </script>
 </div>
-<@footer></@footer>
+<@footer>
+<script type="application/javascript" id="footer_script">
+
+    $('#postDate').datetimepicker({
+        format: 'yyyy-mm-dd hh:ii',
+        language: 'zh-CN',
+        weekStart: 1,
+        todayBtn: 1,
+        autoclose: 1
+    });
+
+    MathJax.Hub.Config({
+        showProcessingMessages: false,
+        messageStyle: "none",
+        tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code','a']
+        }
+    });
+
+    var QUEUE = MathJax.Hub.queue;
+
+    /**
+     * 加载编辑器
+     */
+    var easyMDE = new EasyMDE({
+        element: document.getElementById("editorarea"),
+        autoDownloadFontAwesome: false,
+        autofocus: true,
+        autosave: {
+            enabled: true,
+            uniqueId: "editor-temp-${post.postId?c}",
+            delay: 10000
+        },
+        renderingConfig: {
+            codeSyntaxHighlighting: true
+        },
+        previewRender: function(plainText) {
+            var preview = document.getElementsByClassName("editor-preview-side")[0];
+            preview.innerHTML = this.parent.markdown(plainText);
+            preview.setAttribute('id','editor-preview');
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,"editor-preview"]);
+            return preview.innerHTML;
+        },
+        showIcons: ["code", "table"],
+        status: ["autosave", "lines", "words"],
+        tabSize: 4
+    });
+
+    /**
+     * 方法来自https://gitee.com/supperzh/zb-blog/blob/master/src/main/resources/templates/article/publish.html#L255
+     */
+    $(function () {
+        inlineAttachment.editors.codemirror4.attach(easyMDE.codemirror, {
+            progressText: "![上传中...]()",
+            uploadUrl: "/admin/attachments/upload"
+        });
+    });
+
+    var tagList = $('#tagList');
+
+    /**
+     * 初始化标签
+     */
+    tagList.tagEditor({
+        delimiter: ',',
+        placeholder: '<@spring.message code="admin.posts.edit.form.tag.placeholder" />',
+        forceLowercase: false
+    });
+
+    /**
+     * 加载该文章已有的标签
+     */
+    <#if post.tags?size gt 0>
+        <#list post.tags as tag>
+            tagList.tagEditor('addTag','${tag.tagName}');
+        </#list>
+    </#if>
+
+    $('#chooseTag').change(function () {
+        tagList.tagEditor('addTag',$(this).val());
+    });
+
+    /**
+     * 自动填充路径，并且将汉字转化成拼音以-隔开
+     */
+    function autoComplateUrl() {
+        var titleVal = $("#postTitle");
+        var postUrl = $("#postUrl");
+        if(titleVal.val()!=="" && titleVal.val() !== null && postUrl.html()===''){
+            postUrl.html(new Date().getTime());
+        }
+    }
+
+    /**
+     * 检测是否已经存在该链接
+     * @constructor
+     */
+    function urlOnBlurAuto() {
+        var newPostUrl = $('#newPostUrl');
+        if(newPostUrl.val()===""){
+            halo.showMsg("<@spring.message code='admin.editor.js.no-url' />",'info',2000);
+            return;
+        }
+        $.get('/admin/posts/checkUrl',{'postUrl': newPostUrl.val()},function (data) {
+            if(data.code===0){
+                halo.showMsg(data.msg,'error',2000);
+                return;
+            }else{
+                $('#postUrl').html(newPostUrl.val());
+                $('#btn_change_postUrl').hide();
+                $('#btn_input_postUrl').show();
+            }
+        },'JSON');
+    }
+    $('#btn_input_postUrl').click(function () {
+        var postUrl = $("#postUrl");
+        postUrl.html("<input type='text' id='newPostUrl' onblur='urlOnBlurAuto()' value='"+postUrl.html()+"'>");
+        $(this).hide();
+        $('#btn_change_postUrl').show();
+    });
+
+    /**
+     * 提交文章
+     * @param status 文章状态
+     */
+    function push(status) {
+        var postTitle = $("#postTitle");
+        var postUrl = $("#postUrl");
+        var cateList = new Array();
+        if(!postTitle.val()){
+            halo.showMsg("<@spring.message code='admin.editor.js.no-title' />",'info',2000);
+            return;
+        }
+        if(!postUrl.html()){
+            halo.showMsg("<@spring.message code='admin.editor.js.no-url' />",'info',2000);
+            return;
+        }
+        $('input[name="categories"]:checked').each(function(){
+            cateList.push($(this).val());
+        });
+        $.post('/admin/posts/update',{
+            'postId': $('#postId').val(),
+            'postStatus': status,
+            'postTitle': postTitle.val(),
+            'postUrl' : postUrl.html().toString(),
+            'postContentMd': easyMDE.value(),
+            'postThumbnail': $('#selectImg').attr('src'),
+            'cateList' : cateList.toString(),
+            'tagList' : $('#tagList').tagEditor('getTags')[0].tags.toString(),
+            'allowComment' : $('#allowComment').val(),
+            'postDate' : $("#postDate").val(),
+            'postPassword' : $("#postPassword").val()
+        },function (data) {
+            if(data.code === 1){
+                //清除自动保存的内容
+                easyMDE.toTextArea();
+                easyMDE = null;
+                halo.showMsgAndRedirect(data.msg,'success',1000,'/admin/posts',"${options.admin_pjax!'true'}");
+            }else{
+                halo.showMsg(data.msg,'error',2000);
+            }
+        },'JSON')
+    }
+
+    function removeThumbnail(){
+        $("#selectImg").attr("src","/static/halo-frontend/images/thumbnail/thumbnail.png");
+    }
+</script>
+</@footer>
 </#compress>

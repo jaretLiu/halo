@@ -32,8 +32,8 @@ public class ApiLinkController {
      * 获取所有友情链接
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -54,7 +54,7 @@ public class ApiLinkController {
      */
     @GetMapping
     public JsonResult links() {
-        List<Link> links = linkService.findAll();
+        final List<Link> links = linkService.findAll();
         if (null != links && links.size() > 0) {
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), links);
         } else {

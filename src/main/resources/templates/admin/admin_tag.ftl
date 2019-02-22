@@ -12,10 +12,10 @@
         </h1>
         <ol class="breadcrumb">
             <li>
-                <a data-pjax="true" href="#">
+                <a data-pjax="true" href="javascript:void(0)">
                     <i class="fa fa-dashboard"></i> <@spring.message code='admin.index.bread.index' /></a>
             </li>
-            <li><a data-pjax="true" href="#"><@spring.message code='admin.posts.title' /></a></li>
+            <li><a data-pjax="true" href="javascript:void(0)"><@spring.message code='admin.posts.title' /></a></li>
             <li class="active"><@spring.message code='admin.tags.title' /></li>
         </ol>
     </section>
@@ -27,23 +27,23 @@
                         <div class="box-header with-border">
                             <h3 class="box-title"><@spring.message code='admin.tags.text.edit-tag' /><#if updateTag??>[${updateTag.tagName}]</#if></h3>
                         </div>
-                        <form action="/admin/tag/save" method="post" role="form">
+                        <form role="form" id="tagSaveForm">
                             <input type="hidden" name="tagId" value="${updateTag.tagId?c}">
                             <div class="box-body">
                                 <div class="form-group">
                                     <label for="tagName"><@spring.message code='admin.tags.form.tag-name' /></label>
-                                    <input type="text" class="form-control" id="tagName" name="tagName" value="${updateTag.tagName}">
+                                    <input type="text" class="form-control" id="tagName" name="tagName" value="${updateTag.tagName!}">
                                     <small><@spring.message code='admin.tags.form.tag-name-tips' /></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="tagUrl"><@spring.message code='admin.tags.form.tag-url' /></label>
-                                    <input type="text" class="form-control" id="tagUrl" name="tagUrl" value="${updateTag.tagUrl}">
+                                    <input type="text" class="form-control" id="tagUrl" name="tagUrl" value="${updateTag.tagUrl!}">
                                     <small><@spring.message code='admin.tags.form.tag-url-tips' /></small>
                                 </div>
                             </div>
                             <div class="box-footer">
-                                <button type="submit" class="btn btn-primary btn-sm "><@spring.message code='common.btn.define-edit' /></button>
-                                <a data-pjax="true" href="/admin/tag" class="btn btn-info btn-sm "><@spring.message code='common.btn.back-to-add' /></a>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="save()"><@spring.message code='common.btn.define-edit' /></button>
+                                <a data-pjax="true" href="/admin/tag" class="btn btn-info btn-sm"><@spring.message code='common.btn.back-to-add' /></a>
                                 <#if updateTag.posts?size = 0>
                                 <a data-pjax="true" href="/admin/tag/remove?tagId=${updateTag.tagId?c}" class="btn btn-danger btn-sm  pull-right"><@spring.message code='common.btn.delete' /></a>
                                 </#if>
@@ -53,7 +53,7 @@
                         <div class="box-header with-border">
                             <h3 class="box-title"><@spring.message code='admin.tags.text.add-tag' /></h3>
                         </div>
-                        <form action="/admin/tag/save" method="post" role="form" onsubmit="return checkTag()">
+                        <form role="form" id="tagSaveForm">
                             <div class="box-body">
                                 <div class="form-group">
                                     <label for="tagName"><@spring.message code='admin.tags.form.tag-name' /></label>
@@ -67,7 +67,7 @@
                                 </div>
                             </div>
                             <div class="box-footer">
-                                <button type="submit" class="btn btn-primary btn-sm "><@spring.message code='common.btn.define-add' /></button>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="save()"><@spring.message code='common.btn.define-add' /></button>
                             </div>
                         </form>
                     </#if>
@@ -117,40 +117,31 @@
             </div>
         </div>
     </div>
-    <script>
-        function modelShow(url) {
-            $('#url').val(url);
-            $('#removeCateModal').modal();
-        }
-        function removeIt(){
-            var url=$.trim($("#url").val());
-            window.location.href=url;
-        }
-        function checkTag() {
-            var name = $('#tagName').val();
-            var url = $('#tagUrl').val();
-            var result = true;
-            if(name==""||url==""){
-                halo.showMsg("<@spring.message code='common.js.info-no-complete' />",'info',2000);
-                result = false;
-            }
-            $.ajax({
-                type: 'GET',
-                url: '/admin/tag/checkUrl',
-                async: false,
-                data: {
-                    'tagUrl' : url
-                },
-                success: function (data) {
-                    if(data.code==0){
-                        halo.showMsg(data.msg,'error',2000);
-                        result = false;
-                    }
-                }
-            });
-            return result;
-        }
-    </script>
 </div>
-<@footer></@footer>
+<@footer>
+<script type="application/javascript" id="footer_script">
+    function modelShow(url) {
+        $('#url').val(url);
+        $('#removeCateModal').modal();
+    }
+    function removeIt(){
+        var url=$.trim($("#url").val());
+        <#if (options.admin_pjax!'true') == 'true'>
+            pjax.loadUrl(url);
+        <#else>
+            window.location.href = url;
+        </#if>
+    }
+    function save() {
+        var param = $("#tagSaveForm").serialize();
+        $.post("/admin/tag/save",param,function (data) {
+            if (data.code === 1) {
+                halo.showMsgAndRedirect(data.msg,'success',1000,'/admin/tag',"${options.admin_pjax!'true'}");
+            } else {
+                halo.showMsg(data.msg,'error',2000);
+            }
+        })
+    }
+</script>
+</@footer>
 </#compress>

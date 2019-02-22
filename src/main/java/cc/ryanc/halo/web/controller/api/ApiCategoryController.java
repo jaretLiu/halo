@@ -29,8 +29,8 @@ public class ApiCategoryController {
      * 获取所有分类
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -62,8 +62,8 @@ public class ApiCategoryController {
      * 获取单个分类的信息
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -82,7 +82,7 @@ public class ApiCategoryController {
      */
     @GetMapping(value = "/{cateUrl}")
     public JsonResult categories(@PathVariable("cateUrl") String cateUrl) {
-        Category category = categoryService.findByCateUrl(cateUrl);
+        final Category category = categoryService.findByCateUrl(cateUrl);
         if (null != category) {
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), category);
         } else {

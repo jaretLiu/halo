@@ -2,7 +2,6 @@ package cc.ryanc.halo.web.controller.front;
 
 import cc.ryanc.halo.model.domain.Post;
 import cc.ryanc.halo.model.domain.Tag;
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
 import cc.ryanc.halo.service.PostService;
 import cc.ryanc.halo.service.TagService;
@@ -14,11 +13,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import static cc.ryanc.halo.model.dto.HaloConst.OPTIONS;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * <pre>
@@ -58,7 +61,7 @@ public class FrontTagController extends BaseController {
     @GetMapping(value = "{tagUrl}")
     public String tags(Model model,
                        @PathVariable("tagUrl") String tagUrl) {
-        return this.tags(model, tagUrl, 1);
+        return this.tags(model, tagUrl, 1, Sort.by(DESC, "postDate"));
     }
 
     /**
@@ -72,20 +75,20 @@ public class FrontTagController extends BaseController {
     @GetMapping(value = "{tagUrl}/page/{page}")
     public String tags(Model model,
                        @PathVariable("tagUrl") String tagUrl,
-                       @PathVariable("page") Integer page) {
-        Tag tag = tagService.findByTagUrl(tagUrl);
-        if(null==tag){
+                       @PathVariable("page") Integer page,
+                       @SortDefault(sort = "postDate", direction = DESC) Sort sort) {
+        final Tag tag = tagService.findByTagUrl(tagUrl);
+        if (null == tag) {
             return this.renderNotFound();
         }
-        Sort sort = new Sort(Sort.Direction.DESC, "postDate");
-        Integer size = 10;
-        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()))) {
-            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()));
+        int size = 10;
+        if (StrUtil.isNotBlank(OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()))) {
+            size = Integer.parseInt(OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()));
         }
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
-        Page<Post> posts = postService.findPostsByTags(tag, pageable);
-        int[] rainbow = PageUtil.rainbow(page, posts.getTotalPages(), 3);
-        model.addAttribute("is_tags",true);
+        final Pageable pageable = PageRequest.of(page - 1, size, sort);
+        final Page<Post> posts = postService.findPostsByTags(tag, pageable);
+        final int[] rainbow = PageUtil.rainbow(page, posts.getTotalPages(), 3);
+        model.addAttribute("is_tags", true);
         model.addAttribute("posts", posts);
         model.addAttribute("rainbow", rainbow);
         model.addAttribute("tag", tag);

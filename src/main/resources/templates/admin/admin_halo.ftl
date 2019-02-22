@@ -30,10 +30,12 @@
             <p>Blog : <a href="https://ryanc.cc" target="_blank">https://ryanc.cc</a> </p>
             <p>Email : <a href='mailto:i@ryanc.cc'>i@ryanc.cc</a></p>
             <p>Telegram : <a href="https://t.me/ruibaby" target="_blank">ruibaby</a></p>
-            <p>Telegram Channel: <a href="https://t.me/ryan0up" target="_blank">Ryan0up'S Channel</a></p>
+            <p>Telegram Channel: <a href="https://t.me/halo_dev" target="_blank">Halo's Channel</a></p>
             <p>QQ : 709831589</p>
         </div>
     </section>
 </div>
-<@footer></@footer>
+<@footer>
+<script type="application/javascript" id="footer_script"></script>
+</@footer>
 </#compress>

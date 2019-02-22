@@ -11,7 +11,7 @@
             <li>
                 <a data-pjax="true" href="/admin"><i class="fa fa-dashboard"></i> <@spring.message code='admin.index.bread.index' /></a>
             </li>
-            <li><a data-pjax="true" href="#"><@spring.message code='admin.pages.title' /></a></li>
+            <li><a data-pjax="true" href="javascript:void(0)"><@spring.message code='admin.pages.title' /></a></li>
             <li class="active"><@spring.message code='admin.pages.bread.all-pages' /></li>
         </ol>
     </section>
@@ -66,6 +66,7 @@
                                             <th><@spring.message code='common.th.url' /></th>
                                             <th><@spring.message code='common.th.comments' /></th>
                                             <td><@spring.message code='common.th.views' /></td>
+                                            <th><@spring.message code='common.th.status' /></th>
                                             <th><@spring.message code='common.th.date' /></th>
                                             <th><@spring.message code='common.th.control' /></th>
                                         </tr>
@@ -80,17 +81,26 @@
                                                     <td>
                                                         <span class="label" style="background-color: #d6cdcd;">${page.postViews}</span>
                                                     </td>
+                                                    <td>
+                                                        <#if page.postStatus==0>
+                                                            <span class="label bg-green"><@spring.message code='common.status.published' /></span>
+                                                        <#elseif page.postStatus==1>
+                                                            <span class="label bg-yellow"><@spring.message code='common.status.draft' /></span>
+                                                        <#else>
+                                                            <span class="label bg-red"><@spring.message code='common.status.recycle-bin' /></span>
+                                                        </#if>
+                                                    </td>
                                                     <td>${page.postDate?string("yyyy-MM-dd HH:mm")}</td>
                                                     <td>
                                                         <a href="/p/${page.postUrl}" class="btn btn-info btn-xs " target="_blank"><@spring.message code='common.btn.view' /></a>
-                                                        <a href="/admin/page/edit?pageId=${page.postId?c}" class="btn btn-primary btn-xs "><@spring.message code='common.btn.edit' /></a>
+                                                        <a data-pjax="true" href="/admin/page/edit?pageId=${page.postId?c}" class="btn btn-primary btn-xs "><@spring.message code='common.btn.edit' /></a>
                                                         <button class="btn btn-danger btn-xs " onclick="modelShow('/admin/posts/remove?postId=${page.postId?c}&postType=${page.postType}','<@spring.message code="common.text.tips.to-delete" />')"><@spring.message code='common.btn.delete' /></button>
                                                     </td>
                                                 </tr>
                                             </#list>
                                             <#else>
                                             <tr>
-                                                <td colspan="6" style="text-align: center;"><@spring.message code='common.text.no-data' /></td>
+                                                <td colspan="7" style="text-align: center;"><@spring.message code='common.text.no-data' /></td>
                                             </tr>
                                         </#if>
                                     </tbody>
@@ -121,17 +131,22 @@
             </div>
         </div>
     </div>
-    <script>
-        function modelShow(url,message) {
-            $('#url').val(url);
-            $('#message').html(message);
-            $('#removePostModal').modal();
-        }
-        function removeIt(){
-            var url=$.trim($("#url").val());
-            window.location.href=url;
-        }
-    </script>
 </div>
-<@footer></@footer>
+<@footer>
+<script type="application/javascript" id="footer_script">
+    function modelShow(url,message) {
+        $('#url').val(url);
+        $('#message').html(message);
+        $('#removePostModal').modal();
+    }
+    function removeIt(){
+        var url=$.trim($("#url").val());
+        <#if (options.admin_pjax!'true') == 'true'>
+            pjax.loadUrl(url);
+        <#else>
+            window.location.href = url;
+        </#if>
+    }
+</script>
+</@footer>
 </#compress>

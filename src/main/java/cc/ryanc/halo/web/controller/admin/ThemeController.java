@@ -1,6 +1,5 @@
 package cc.ryanc.halo.web.controller.admin;
 
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.dto.LogsRecord;
 import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
@@ -14,6 +13,7 @@ import cc.ryanc.halo.web.controller.core.BaseController;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.file.FileReader;
 import cn.hutool.core.io.file.FileWriter;
+import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.RuntimeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
@@ -31,6 +31,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
+
+import static cc.ryanc.halo.model.dto.HaloConst.OPTIONS;
+import static cc.ryanc.halo.model.dto.HaloConst.THEMES;
 
 /**
  * <pre>
@@ -68,8 +71,8 @@ public class ThemeController extends BaseController {
     @GetMapping
     public String themes(Model model) {
         model.addAttribute("activeTheme", BaseController.THEME);
-        if (null != HaloConst.THEMES) {
-            model.addAttribute("themes", HaloConst.THEMES);
+        if (null != THEMES) {
+            model.addAttribute("themes", THEMES);
         }
         return "admin/admin_theme";
     }
@@ -91,10 +94,10 @@ public class ThemeController extends BaseController {
             optionsService.saveOption(BlogPropertiesEnum.THEME.getProp(), siteTheme);
             //设置主题
             BaseController.THEME = siteTheme;
-            HaloConst.OPTIONS.clear();
-            HaloConst.OPTIONS = optionsService.findAllOptions();
+            OPTIONS.clear();
+            OPTIONS = optionsService.findAllOptions();
             configuration.setSharedVariable("themeName", siteTheme);
-            configuration.setSharedVariable("options", HaloConst.OPTIONS);
+            configuration.setSharedVariable("options", OPTIONS);
             log.info("Changed theme to {}", siteTheme);
             logsService.save(LogsRecord.CHANGE_THEME, "更换为" + siteTheme, request);
             return new JsonResult(ResultCodeEnum.SUCCESS.getCode(), localeMessageUtil.getMessage("code.admin.theme.change-success", new Object[]{siteTheme}));
@@ -117,15 +120,15 @@ public class ThemeController extends BaseController {
         try {
             if (!file.isEmpty()) {
                 //获取项目根路径
-                File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
-                File themePath = new File(basePath.getAbsolutePath(), new StringBuffer("templates/themes/").append(file.getOriginalFilename()).toString());
+                final File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
+                final File themePath = new File(basePath.getAbsolutePath(), new StringBuffer("templates/themes/").append(file.getOriginalFilename()).toString());
                 file.transferTo(themePath);
                 log.info("Upload topic success, path is " + themePath.getAbsolutePath());
                 logsService.save(LogsRecord.UPLOAD_THEME, file.getOriginalFilename(), request);
                 ZipUtil.unzip(themePath, new File(basePath.getAbsolutePath(), "templates/themes/"));
                 FileUtil.del(themePath);
-                HaloConst.THEMES.clear();
-                HaloConst.THEMES = HaloUtils.getThemes();
+                THEMES.clear();
+                THEMES = HaloUtils.getThemes();
             } else {
                 log.error("Upload theme failed, no file selected");
                 return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.theme.upload-no-file"));
@@ -146,11 +149,11 @@ public class ThemeController extends BaseController {
     @GetMapping(value = "/remove")
     public String removeTheme(@RequestParam("themeName") String themeName) {
         try {
-            File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
-            File themePath = new File(basePath.getAbsolutePath(), "templates/themes/" + themeName);
+            final File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
+            final File themePath = new File(basePath.getAbsolutePath(), "templates/themes/" + themeName);
             FileUtil.del(themePath);
-            HaloConst.THEMES.clear();
-            HaloConst.THEMES = HaloUtils.getThemes();
+            THEMES.clear();
+            THEMES = HaloUtils.getThemes();
         } catch (Exception e) {
             log.error("Delete theme failed: {}", e.getMessage());
         }
@@ -182,14 +185,14 @@ public class ThemeController extends BaseController {
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.common.info-no-complete"));
         }
         try {
-            File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
-            File themePath = new File(basePath.getAbsolutePath(), "templates/themes");
-            String cmdResult = RuntimeUtil.execForStr("git clone " + remoteAddr + " " + themePath.getAbsolutePath() + "/" + themeName);
+            final File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
+            final File themePath = new File(basePath.getAbsolutePath(), "templates/themes");
+            final String cmdResult = RuntimeUtil.execForStr("git clone " + remoteAddr + " " + themePath.getAbsolutePath() + "/" + themeName);
             if (NOT_FOUND_GIT.equals(cmdResult)) {
                 return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.theme.no-git"));
             }
-            HaloConst.THEMES.clear();
-            HaloConst.THEMES = HaloUtils.getThemes();
+            THEMES.clear();
+            THEMES = HaloUtils.getThemes();
         } catch (FileNotFoundException e) {
             log.error("Cloning theme failed: {}", e.getMessage());
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.theme.clone-theme-failed") + e.getMessage());
@@ -207,14 +210,14 @@ public class ThemeController extends BaseController {
     @ResponseBody
     public JsonResult pullFromRemote(@RequestParam(value = "themeName") String themeName) {
         try {
-            File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
-            File themePath = new File(basePath.getAbsolutePath(), "templates/themes");
-            String cmdResult = RuntimeUtil.execForStr("cd " + themePath.getAbsolutePath() + "/" + themeName + " && git pull");
+            final File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
+            final File themePath = new File(basePath.getAbsolutePath(), "templates/themes");
+            final String cmdResult = RuntimeUtil.execForStr("cd " + themePath.getAbsolutePath() + "/" + themeName + " && git pull");
             if (NOT_FOUND_GIT.equals(cmdResult)) {
                 return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.theme.no-git"));
             }
-            HaloConst.THEMES.clear();
-            HaloConst.THEMES = HaloUtils.getThemes();
+            THEMES.clear();
+            THEMES = HaloUtils.getThemes();
         } catch (Exception e) {
             log.error("Update theme failed: {}", e.getMessage());
             return new JsonResult(ResultCodeEnum.FAIL.getCode(), localeMessageUtil.getMessage("code.admin.theme.update-theme-failed") + e.getMessage());
@@ -248,7 +251,7 @@ public class ThemeController extends BaseController {
      */
     @GetMapping(value = "/editor")
     public String editor(Model model) {
-        List<String> tpls = HaloUtils.getTplName(BaseController.THEME);
+        final List<String> tpls = HaloUtils.getTplName(BaseController.THEME);
         model.addAttribute("tpls", tpls);
         return "admin/admin_theme-editor";
     }
@@ -265,10 +268,14 @@ public class ThemeController extends BaseController {
         String tplContent = "";
         try {
             //获取项目根路径
-            File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
+            final File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
             //获取主题路径
-            File themesPath = new File(basePath.getAbsolutePath(), new StringBuffer("templates/themes/").append(BaseController.THEME).append("/").append(tplName).toString());
-            FileReader fileReader = new FileReader(themesPath);
+            final StrBuilder themePath = new StrBuilder("templates/themes/");
+            themePath.append(BaseController.THEME);
+            themePath.append("/");
+            themePath.append(tplName);
+            final File themesPath = new File(basePath.getAbsolutePath(), themePath.toString());
+            final FileReader fileReader = new FileReader(themesPath);
             tplContent = fileReader.readString();
         } catch (Exception e) {
             log.error("Get template file error: {}", e.getMessage());
@@ -292,10 +299,14 @@ public class ThemeController extends BaseController {
         }
         try {
             //获取项目根路径
-            File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
+            final File basePath = new File(ResourceUtils.getURL("classpath:").getPath());
             //获取主题路径
-            File tplPath = new File(basePath.getAbsolutePath(), new StringBuffer("templates/themes/").append(BaseController.THEME).append("/").append(tplName).toString());
-            FileWriter fileWriter = new FileWriter(tplPath);
+            final StrBuilder themePath = new StrBuilder("templates/themes/");
+            themePath.append(BaseController.THEME);
+            themePath.append("/");
+            themePath.append(tplName);
+            final File tplPath = new File(basePath.getAbsolutePath(), themePath.toString());
+            final FileWriter fileWriter = new FileWriter(tplPath);
             fileWriter.write(tplContent);
         } catch (Exception e) {
             log.error("Template save failed: {}", e.getMessage());

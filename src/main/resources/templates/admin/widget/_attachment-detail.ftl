@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <link rel="stylesheet" href="/static/plugins/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/plugins/toast/css/jquery.toast.min.css">
-    <link rel="stylesheet" href="/static/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="/static/halo-backend/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/halo-backend/plugins/toast/css/jquery.toast.min.css">
+    <link rel="stylesheet" href="/static/halo-backend/css/AdminLTE.min.css">
     <style>
         .attachDesc,.attachImg{padding-top:15px;padding-bottom:15px}
         .form-horizontal .control-label{text-align:left}
@@ -64,7 +64,7 @@
                     </div>
                     <div class="box-footer">
                         <button type="button" class="btn btn-danger btn-sm pull-left" onclick="btn_delete()"><@spring.message code="common.btn.delete" /></button>
-                        <button type="button" class="btn btn-info btn-sm pull-right btn-copy" data-clipboard-text="<#if !attachment.attachLocation?? || attachment.attachLocation! == 'SERVER'>${options.blog_url!}</#if>${attachment.attachPath}"><@spring.message code='admin.attachments.modal.form.btn.copy-path' /></button>
+                        <button type="button" class="btn btn-info btn-sm pull-right btn-copy" data-clipboard-text="<#if !attachment.attachLocation?? || attachment.attachLocation! == 'server'>${options.blog_url!}</#if>${attachment.attachPath}"><@spring.message code='admin.attachments.modal.form.btn.copy-path' /></button>
                     </div>
                 </form>
             </div>
@@ -72,13 +72,13 @@
     </div>
 </div>
 </body>
-<script src="/static/plugins/jquery/jquery.min.js"></script>
-<script src="/static/plugins/bootstrap/js/bootstrap.min.js"></script>
-<script src="/static/plugins/toast/js/jquery.toast.min.js"></script>
-<script src="/static/plugins/clipboard/clipboard.min.js"></script>
-<script src="/static/js/adminlte.min.js"></script>
-<script src="/static/plugins/layer/layer.js"></script>
-<script src="/static/js/halo.min.js"></script>
+<script src="/static/halo-common/jquery/jquery.min.js"></script>
+<script src="/static/halo-backend/plugins/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/halo-backend/plugins/toast/js/jquery.toast.min.js"></script>
+<script src="/static/halo-backend/plugins/clipboard/clipboard.min.js"></script>
+<script src="/static/halo-backend/js/adminlte.min.js"></script>
+<script src="/static/halo-backend/plugins/layer/layer.js"></script>
+<script src="/static/halo-backend/js/halo.min.js"></script>
 <script>
     var halo = new $.halo();
     function btn_delete() {
@@ -87,36 +87,13 @@
             ,btn: ['<@spring.message code="common.btn.delete" />', '<@spring.message code="common.btn.cancel" />']
             ,yes: function(index){
                 layer.close(index);
-                $.ajax({
-                    type: 'GET',
-                    url: '/admin/attachments/remove',
-                    async: false,
-                    data:{
-                        attachId : ${attachment.attachId?c}
-                    },
-                    success: function (data) {
-                        if(data.code==1){
-                            $.toast({
-                                text: data.msg,
-                                heading: '<@spring.message code="common.text.tips" />',
-                                icon: 'success',
-                                showHideTransition: 'fade',
-                                allowToastClose: true,
-                                hideAfter: 1000,
-                                stack: 1,
-                                position: 'top-center',
-                                textAlign: 'left',
-                                loader: true,
-                                loaderBg: '#ffffff',
-                                afterHidden: function () {
-                                    parent.location.reload();
-                                }
-                            });
-                        }else{
-                            halo.showMsg(data.msg,'error',2000);
-                        }
+                $.get('/admin/attachments/remove',{'attachId' : ${attachment.attachId?c}},function (data) {
+                    if(data.code === 1){
+                        halo.showMsgAndParentRedirect(data.msg,'success',1000,'/admin/attachments');
+                    }else{
+                        halo.showMsg(data.msg,'error',2000);
                     }
-                });
+                },'JSON');
             }
         });
     }

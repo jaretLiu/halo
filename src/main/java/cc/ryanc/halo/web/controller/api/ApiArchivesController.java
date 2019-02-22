@@ -32,8 +32,8 @@ public class ApiArchivesController {
      * 根据年份归档
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -74,7 +74,7 @@ public class ApiArchivesController {
      */
     @GetMapping(value = "/year")
     public JsonResult archivesYear() {
-        List<Archive> archives = postService.findPostGroupByYear();
+        final List<Archive> archives = postService.findPostGroupByYear();
         if (null != archives && archives.size() > 0) {
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), archives);
         } else {
@@ -86,8 +86,8 @@ public class ApiArchivesController {
      * 根据月份归档
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -128,11 +128,30 @@ public class ApiArchivesController {
      */
     @GetMapping(value = "/year/month")
     public JsonResult archivesYearAndMonth() {
-        List<Archive> archives = postService.findPostGroupByYearAndMonth();
+        final List<Archive> archives = postService.findPostGroupByYearAndMonth();
         if (null != archives && archives.size() > 0) {
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), archives);
         } else {
             return new JsonResult(ResponseStatusEnum.EMPTY.getCode(), ResponseStatusEnum.EMPTY.getMsg());
         }
     }
+
+    /**
+     * @return JsonResult
+     * @Author Aquan
+     * @Description 返回所有文章
+     * @Date 2019.1.4 11:06
+     * @Param
+     **/
+    @GetMapping(value = "/all")
+    public JsonResult archivesAllPost() {
+        final List<Archive> archive = postService.findAllPost();
+        if (null != archive && archive.size() > 0) {
+            return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), archive);
+        } else {
+            return new JsonResult(ResponseStatusEnum.EMPTY.getCode(), ResponseStatusEnum.EMPTY.getMsg());
+        }
+    }
+
+
 }

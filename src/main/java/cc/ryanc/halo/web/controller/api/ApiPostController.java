@@ -1,7 +1,6 @@
 package cc.ryanc.halo.web.controller.api;
 
 import cc.ryanc.halo.model.domain.Post;
-import cc.ryanc.halo.model.dto.HaloConst;
 import cc.ryanc.halo.model.dto.JsonResult;
 import cc.ryanc.halo.model.enums.BlogPropertiesEnum;
 import cc.ryanc.halo.model.enums.PostStatusEnum;
@@ -14,7 +13,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.web.bind.annotation.*;
+
+import static cc.ryanc.halo.model.dto.HaloConst.OPTIONS;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 /**
  * <pre>
@@ -36,8 +39,8 @@ public class ApiPostController {
      * 获取文章列表 分页
      *
      * <p>
-     *     result api
-     *     <pre>
+     * result api
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -98,14 +101,13 @@ public class ApiPostController {
      * @return JsonResult
      */
     @GetMapping(value = "/page/{page}")
-    public JsonResult posts(@PathVariable(value = "page") Integer page) {
-        Sort sort = new Sort(Sort.Direction.DESC, "postDate");
+    public JsonResult posts(@PathVariable(value = "page") Integer page, @SortDefault(sort = "postDate", direction = DESC) Sort sort) {
         int size = 10;
-        if (StrUtil.isNotBlank(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()))) {
-            size = Integer.parseInt(HaloConst.OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()));
+        if (StrUtil.isNotBlank(OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()))) {
+            size = Integer.parseInt(OPTIONS.get(BlogPropertiesEnum.INDEX_POSTS.getProp()));
         }
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
-        Page<Post> posts = postService.findPostByStatus(PostStatusEnum.PUBLISHED.getCode(), PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
+        final Pageable pageable = PageRequest.of(page - 1, size, sort);
+        final Page<Post> posts = postService.findPostByStatus(PostStatusEnum.PUBLISHED.getCode(), PostTypeEnum.POST_TYPE_POST.getDesc(), pageable);
         if (null == posts) {
             return new JsonResult(ResponseStatusEnum.EMPTY.getCode(), ResponseStatusEnum.EMPTY.getMsg());
         }
@@ -116,8 +118,8 @@ public class ApiPostController {
      * 获取单个文章信息
      *
      * <p>
-     *     result json:
-     *     <pre>
+     * result json:
+     * <pre>
      * {
      *     "code": 200,
      *     "msg": "OK",
@@ -150,7 +152,7 @@ public class ApiPostController {
      */
     @GetMapping(value = "/{postId}")
     public JsonResult posts(@PathVariable(value = "postId") Long postId) {
-        Post post = postService.findByPostId(postId, PostTypeEnum.POST_TYPE_POST.getDesc());
+        final Post post = postService.findByPostId(postId, PostTypeEnum.POST_TYPE_POST.getDesc());
         if (null != post) {
             postService.cacheViews(post.getPostId());
             return new JsonResult(ResponseStatusEnum.SUCCESS.getCode(), ResponseStatusEnum.SUCCESS.getMsg(), post);

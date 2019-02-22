@@ -16,7 +16,7 @@
                 <a data-pjax="true" href="/admin">
                     <i class="fa fa-dashboard"></i> <@spring.message code='admin.index.bread.index' /></a>
             </li>
-            <li><a data-pjax="true" href="#"><@spring.message code='admin.setting.bread.setting' /></a></li>
+            <li><a data-pjax="true" href="javascript:void(0)"><@spring.message code='admin.setting.bread.setting' /></a></li>
             <li class="active"><@spring.message code='admin.setting.title' /></li>
         </ol>
     </section>
@@ -83,7 +83,7 @@
                                             <div class="input-group">
                                                 <input type="text" class="form-control selectData" id="blogLogo" name="blog_logo" value="${options.blog_logo!}">
                                                 <span class="input-group-btn">
-                                                    <button class="btn btn-default " type="button" onclick="halo.layerModal('/admin/attachments/select?id=blogLogo','<@spring.message code="common.js.all-attachment" />')"><@spring.message code='common.btn.choose' /></button>
+                                                    <button class="btn btn-default btn-flat" type="button" onclick="halo.layerModal('/admin/attachments/select?id=blogLogo','<@spring.message code="common.js.all-attachment" />')"><@spring.message code='common.btn.choose' /></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -94,7 +94,7 @@
                                             <div class="input-group">
                                                 <input type="text" class="form-control selectData" id="blogFavicon" name="blog_favicon" value="${options.blog_favicon!}">
                                                 <span class="input-group-btn">
-                                                    <button class="btn btn-default " type="button" onclick="halo.layerModal('/admin/attachments/select?id=blogFavicon','<@spring.message code="common.js.all-attachment" />')"><@spring.message code='common.btn.choose' /></button>
+                                                    <button class="btn btn-default btn-flat" type="button" onclick="halo.layerModal('/admin/attachments/select?id=blogFavicon','<@spring.message code="common.js.all-attachment" />')"><@spring.message code='common.btn.choose' /></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -145,7 +145,7 @@
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="baiduToken" name="seo_baidu_token" value="${options.seo_baidu_token!}">
                                                 <span class="input-group-btn">
-                                                    <button class="btn btn-default " id="btn_push_baidu" onclick="pushAllToBaidu()" type="button"><@spring.message code='admin.setting.form.baidu-token-btn-push' /></button>
+                                                    <button class="btn btn-default btn-flat" id="btn_push_baidu" onclick="pushAllToBaidu()" type="button"><@spring.message code='admin.setting.form.baidu-token-btn-push' /></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -207,7 +207,7 @@
                                             <div class="input-group">
                                                 <input type="number" class="form-control" id="postSummary" name="post_summary" value="${options.post_summary!'50'}">
                                                 <span class="input-group-btn">
-                                                    <button class="btn btn-default " id="btn_update_summary" onclick="updateAllSummary()" type="button"><@spring.message code='admin.setting.form.post-summary-btn-update' /></button>
+                                                    <button class="btn btn-default btn-flat" id="btn_update_summary" onclick="updateAllSummary()" type="button"><@spring.message code='admin.setting.form.post-summary-btn-update' /></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -316,6 +316,23 @@
                                             </div>
                                             <div class="pretty p-default p-round">
                                                 <input type="radio" name="comment_reply_notice" value="false" ${((options.comment_reply_notice!)=='false')?string('checked','')}>
+                                                <div class="state p-primary">
+                                                    <label><@spring.message code='common.radio.disable' /></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-lg-2 col-sm-4 control-label">API 评论开关：</label>
+                                        <div class="col-lg-4 col-sm-8 control-radio">
+                                            <div class="pretty p-default p-round">
+                                                <input type="radio" name="comment_api_switch" value="true" ${((options.comment_api_switch!)=='true')?string('checked','')}>
+                                                <div class="state p-primary">
+                                                    <label><@spring.message code='common.radio.enable' /></label>
+                                                </div>
+                                            </div>
+                                            <div class="pretty p-default p-round">
+                                                <input type="radio" name="comment_api_switch" value="false" ${((options.comment_api_switch!'false')=='false')?string('checked','')}>
                                                 <div class="state p-primary">
                                                     <label><@spring.message code='common.radio.disable' /></label>
                                                 </div>
@@ -505,6 +522,17 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
+                                        <label for="adminLayoutBoxedBackground" class="col-lg-2 col-sm-4 control-label">盒子布局背景：</label>
+                                        <div class="col-lg-4 col-sm-8">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control selectData" id="adminLayoutBoxedBackground" name="admin_layout_boxed_background" value="${options.admin_layout_boxed_background!}">
+                                                <span class="input-group-btn">
+                                                    <button class="btn btn-default btn-flat" type="button" onclick="halo.layerModal('/admin/attachments/select?id=adminLayoutBoxedBackground','<@spring.message code="common.js.all-attachment" />')"><@spring.message code='common.btn.choose' /></button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
                                         <label for="adminTheme" class="col-lg-2 col-sm-4 control-label"><@spring.message code='admin.setting.form.admin-theme' /></label>
                                         <div class="col-lg-4 col-sm-8">
                                             <select class="form-control" id="adminTheme" name="admin_theme">
@@ -620,12 +648,12 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label for="apiToken" class="col-lg-2 col-sm-4 control-label">Api Token</label>
+                                        <label for="apiToken" class="col-lg-2 col-sm-4 control-label">Api Token：</label>
                                         <div class="col-lg-4 col-sm-8">
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="apiToken" name="api_token" value="${options.api_token!}">
                                                 <span class="input-group-btn">
-                                                    <button class="btn btn-default " id="btnUpdateToken" onclick="updateToken()" type="button"><@spring.message code='admin.setting.form.btn-update-token' /></button>
+                                                    <button class="btn btn-default btn-flat" id="btnUpdateToken" onclick="updateToken()" type="button"><@spring.message code='admin.setting.form.btn-update-token' /></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -633,8 +661,8 @@
                                     <div class="form-group">
                                         <label for="statisticsCode" class="col-lg-2 col-sm-4 control-label"><@spring.message code='admin.setting.form.statistics-code' />
                                             <span data-toggle="tooltip" data-placement="top" title="<@spring.message code='admin.setting.form.statistics-code-tips' />" style="cursor: pointer">
-                                                    <i class="fa fa-question-circle" aria-hidden="true"></i>
-                                                </span>
+                                                <i class="fa fa-question-circle" aria-hidden="true"></i>
+                                            </span>
                                         </label>
                                         <div class="col-lg-4 col-sm-8">
                                             <textarea class="form-control" rows="6" id="statisticsCode" name="statistics_code" style="resize: none">${options.statistics_code!}</textarea>
@@ -651,140 +679,120 @@
             </div>
         </div>
     </section>
-    <@compress single_line=true>
-    <script>
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip();
-            checkAttachOption();
-        });
-
-        /**
-         * 更新所有文章的摘要
-         */
-        function updateAllSummary() {
-            $.ajax({
-                type: 'GET',
-                url: '/admin/posts/updateSummary',
-                data: {
-                    postSummary : $('#postSummary').val()
-                },
-                success: function (data) {
-                    if(data.code==1){
-                        halo.showMsg(data.msg,'success',1000);
-                    }else{
-                        halo.showMsg(data.msg,'error',2000);
-                    }
-                }
-            });
-        }
-
-        /**
-         * 主动提交文章到百度
-         */
-        function pushAllToBaidu() {
-            $.ajax({
-                type: 'GET',
-                url: '/admin/posts/pushAllToBaidu',
-                data: {
-                    baiduToken : $('#baiduToken').val()
-                },
-                success: function (data) {
-                    if(data.code==1){
-                        halo.showMsg(data.msg,'success',1000);
-                    }else{
-                        halo.showMsg(data.msg,'error',2000);
-                    }
-                }
-            });
-        }
-
-        function updateToken() {
-            $.ajax({
-                type: 'GET',
-                url: '/admin/getToken',
-                data: {},
-                success: function (data) {
-                    if(data.code==1){
-                        $("#apiToken").val(data.result);
-                    }
-                }
-            });
-        }
-
-        /**
-         * 附件选项切换
-         */
-        function checkAttachOption() {
-            var server = $('input:radio[value=server]:checked').val();
-            var upyun = $('input:radio[value=upyun]:checked').val();
-            var qiniu = $('input:radio[value=qiniu]:checked').val();
-            if(server!=null){
-                $('.server-options').show();
-            }else{
-                $('.server-options').hide();
-            }
-            if(upyun!=null){
-                $('.upyun-options').show();
-            }else{
-                $('.upyun-options').hide();
-            }
-            if(qiniu!=null){
-                $('.qiniu-options').show();
-            }else{
-                $('.qiniu-options').hide();
-            }
-        }
-
-        /**
-         * 后台布局切换
-         */
-        function viewLayout() {
-            var layout = $('input:radio[value=layout-boxed]:checked').val();
-            if(layout!=null){
-                $('body').addClass('layout-boxed');
-            }else{
-                $('body').removeClass('layout-boxed');
-            }
-        }
-
-        /**
-         * 预览侧边栏
-         */
-        function viewSideBar() {
-            var layout = $('input:radio[value=sidebar-collapse]:checked').val();
-            if(layout!=null){
-                $('body').addClass('sidebar-collapse');
-            }else{
-                $('body').removeClass('sidebar-collapse');
-            }
-        }
-        $('input[name=attach_loc]').click(function () {
-            checkAttachOption();
-        });
-        $('input[name=admin_layout]').click(function () {
-            viewLayout();
-        });
-        $('input[name=sidebar_style]').click(function () {
-            viewSideBar();
-        });
-
-        /**
-         * 预览后台样式切换
-         */
-        $(function () {
-            var beforeTheme;
-            $('#adminTheme').change(function () {
-                if($('body').hasClass("${options.admin_theme!'skin-blue'}")){
-                    $('body').removeClass("${options.admin_theme!'skin-blue'}");
-                }
-                if(beforeTheme!=null){
-                    $('body').removeClass(beforeTheme);
-                }
-                $('body').addClass($(this).val());
-                beforeTheme = $(this).val();
-            })
-        })
-    </script>
-    </@compress>
 </div>
-<@footer></@footer>
+<@footer>
+<script type="application/javascript" id="footer_script">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+        checkAttachOption();
+    });
+
+    /**
+     * 更新所有文章的摘要
+     */
+    function updateAllSummary() {
+        $.get('/admin/posts/updateSummary',{'postSummary' : $('#postSummary').val()},function (data) {
+            if(data.code === 1){
+                halo.showMsg(data.msg,'success',1000);
+            }else{
+                halo.showMsg(data.msg,'error',2000);
+            }
+        },'JSON');
+    }
+
+    /**
+     * 主动提交文章到百度
+     */
+    function pushAllToBaidu() {
+        $.get('/admin/posts/pushAllToBaidu',{'baiduToken' : $('#baiduToken').val()},function (data) {
+            if(data.code === 1){
+                halo.showMsg(data.msg,'success',1000);
+            }else{
+                halo.showMsg(data.msg,'error',2000);
+            }
+        },'JSON');
+    }
+
+    function updateToken() {
+        $.get('/admin/getToken',function (data) {
+            if(data.code === 1){
+                $("#apiToken").val(data.result);
+            }
+        },'JSON');
+    }
+
+    /**
+     * 附件选项切换
+     */
+    function checkAttachOption() {
+        var server = $('input:radio[value=server]:checked').val();
+        var upyun = $('input:radio[value=upyun]:checked').val();
+        var qiniu = $('input:radio[value=qiniu]:checked').val();
+        if(server!=null){
+            $('.server-options').show();
+        }else{
+            $('.server-options').hide();
+        }
+        if(upyun!=null){
+            $('.upyun-options').show();
+        }else{
+            $('.upyun-options').hide();
+        }
+        if(qiniu!=null){
+            $('.qiniu-options').show();
+        }else{
+            $('.qiniu-options').hide();
+        }
+    }
+
+    /**
+     * 后台布局切换
+     */
+    function viewLayout() {
+        var layout = $('input:radio[value=layout-boxed]:checked').val();
+        if(layout!=null){
+            $('body').addClass('layout-boxed');
+        }else{
+            $('body').removeClass('layout-boxed');
+        }
+    }
+
+    /**
+     * 预览侧边栏
+     */
+    function viewSideBar() {
+        var layout = $('input:radio[value=sidebar-collapse]:checked').val();
+        if(layout!=null){
+            $('body').addClass('sidebar-collapse');
+        }else{
+            $('body').removeClass('sidebar-collapse');
+        }
+    }
+    $('input[name=attach_loc]').click(function () {
+        checkAttachOption();
+    });
+    $('input[name=admin_layout]').click(function () {
+        viewLayout();
+    });
+    $('input[name=sidebar_style]').click(function () {
+        viewSideBar();
+    });
+
+    /**
+     * 预览后台样式切换
+     */
+    $(function () {
+        var beforeTheme;
+        $('#adminTheme').change(function () {
+            if($('body').hasClass("${options.admin_theme!'skin-blue'}")){
+                $('body').removeClass("${options.admin_theme!'skin-blue'}");
+            }
+            if(beforeTheme!=null){
+                $('body').removeClass(beforeTheme);
+            }
+            $('body').addClass($(this).val());
+            beforeTheme = $(this).val();
+        })
+    })
+</script>
+</@footer>
